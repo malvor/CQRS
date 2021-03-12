@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services
+        https://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="App\Application\Command\AddUserHandler" class="App\Application\Command\AddUserHandler">
+            <tag name="command_handler" handles="App\Application\Command\AddUser" />
+        </service>
+        <service id="App\Application\Command\DeleteUserHandler" class="App\Application\Command\DeleteUserHandler">
+            <argument type="service" id="app.repository.user" />
+            <tag name="command_handler" handles="App\Application\Command\DeleteUser" />
+        </service>
+        <service class="App\Application\CommandBus" id="app.command_bus" public="true">
+            <argument type="tagged" tag="command_handler"/>
+        </service>
+        <service class="App\Application\Query\GetAllUsersHandler" id="App\Application\Query\GetAllUsersHandler">
+            <argument type="service" id="app.repository.user" />
+            <tag name="query_handler" handles="App\Application\Query\GetAllUsers" />
+        </service>
+        <service class="App\Application\Query\FindOneByUsernameHandler" id="App\Application\Query\FindOneByUsernameHandler">
+            <argument type="service" id="app.repository.user" />
+            <tag name="query_handler" handles="App\Application\Query\FindOneByUsername" />
+        </service>
+        <service class="App\Application\QueryBus" id="app.query_bus" public="true">
+            <argument type="tagged" tag="query_handler"/>
+        </service>
+
+        <service class="App\Infrastructure\Repository\UserInFileRepository" id="app.repository.user">
+            <argument type="string">../../../data/data.json</argument>
+        </service>
+        <service class="App\Infrastructure\Controller\Api\User\Get" id="App\Infrastructure\Controller\Api\User\Get" public="true">
+            <argument type="service" id="app.query_bus"/>
+        </service>
+        <service class="App\Infrastructure\Controller\Api\User\GetOneByUsername" id="App\Infrastructure\Controller\Api\User\GetOneByUsername" public="true">
+            <argument type="service" id="app.query_bus"/>
+        </service>
+        <service class="App\Infrastructure\Controller\Api\User\Delete" id="App\Infrastructure\Controller\Api\User\Delete" public="true">
+            <argument type="service" id="app.command_bus"/>
+        </service>
+    </services>
+</container>

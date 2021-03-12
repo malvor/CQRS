@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+    webserver:
+        build:
+            context: ./
+            dockerfile: ./docker/nginx/Dockerfile
+            target: base
+        environment:
+            - VIRTUAL_HOST=cqrs.local
+            - FPM_CONTAINER_NAME=php-fpm
+        volumes:
+            - app:/var/www/cqrs
+        ports:
+            - "8990:80"
+    php-fpm:
+        user: www-data
+        build:
+            context: ./docker/php-fpm
+            dockerfile: Dockerfile
+            target: dev
+        working_dir: /var/www/cqrs
+        volumes:
+            - app:/var/www/cqrs
+            - home:/home/www-data
+            - ./docker/php-fpm/php-ini-overrides.ini:/usr/local/etc/php/conf.d/99-php-ini-overrides.ini
+        environment:
+            - XDEBUG_CONFIG=remote_enable=1 remote_host=${HOST_IP_ADDRESS} remote_port=9000 idekey=PHPSTORM
+            - PHP_IDE_CONFIG=serverName=cqrs
+
+    php-ssh:
+        build:
+            context: ./docker/ssh
+            dockerfile: Dockerfile
+        ports:
+            - "3322:22"
+        volumes:
+            - app:/var/www/cqrs
+            - home:/root
+volumes:
+    app:
+    home:
